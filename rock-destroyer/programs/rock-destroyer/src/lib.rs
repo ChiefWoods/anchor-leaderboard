@@ -2,9 +2,9 @@ use anchor_lang::prelude::*;
 use anchor_lang::pubkey;
 use anchor_lang::system_program;
 
-declare_id!("BPTPw1pRW4uHPRtHMzscDQiLGQqLr4Qj12UFwCGG1ijq");
+declare_id!("CqmE9A5DYWUdys2Zi3bPEUCL2rYs8tjHdxzZkWy8WzGN");
 
-const GAME_OWNER_PUBKEY: Pubkey = pubkey!("3aim3zyhyU1ooxw8eARo7wLYNLJuLE9UtHhd7FLXabAa");
+const GAME_OWNER_PUBKEY: Pubkey = pubkey!("9agDtgAxwyEhGDFMEdAJiyHUiKehjCpeLWbEj7ZoDhP");
 
 #[program]
 pub mod rock_destroyer {

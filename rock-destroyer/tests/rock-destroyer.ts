@@ -10,8 +10,7 @@ describe("rock-destroyer", () => {
   const program = workspace.RockDestroyer as Program<RockDestroyer>;
   const programProvider = program.provider as AnchorProvider;
 
-  const filePath = "/workspace/solana-curriculum/build-an-anchor-leaderboard/game-owner.json";
-  const gameOwner = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(filePath, "utf-8"))));
+  const gameOwner = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync("../game-owner.json", "utf-8"))));
 
   it("initializes leaderboard", async () => {
     const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);

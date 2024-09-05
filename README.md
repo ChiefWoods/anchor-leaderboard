@@ -57,10 +57,10 @@ npm install
 solana-keygen-new -o game-owner.json
 ```
 
-4. Set configuration to use localhost and keypair
+4. Set configuration to use devnet and keypair
 
 ```
-solana config set -u l -k game-owner.json
+solana config set -u d -k game-owner.json
 ```
 
 5. Airdrop some SOL to account
@@ -87,10 +87,10 @@ anchor build
 anchor test
 ```
 
-9. Deploy the program to localnet
+9. Deploy the program to devnet
 
 ```
-anchor deploy
+anchor deploy --provider.cluster devnet
 ```
 
 ## Issues

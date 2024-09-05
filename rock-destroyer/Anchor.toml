@@ -1,15 +1,18 @@
+[toolchain]
+
 [features]
-seeds = false
+resolution = true
 skip-lint = false
+
 [programs.localnet]
-rock_destroyer = "BPTPw1pRW4uHPRtHMzscDQiLGQqLr4Qj12UFwCGG1ijq"
+rock_destroyer = "CqmE9A5DYWUdys2Zi3bPEUCL2rYs8tjHdxzZkWy8WzGN"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
 cluster = "Localnet"
-wallet = "/workspace/.config/solana/id.json"
+wallet = "../game-owner.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
