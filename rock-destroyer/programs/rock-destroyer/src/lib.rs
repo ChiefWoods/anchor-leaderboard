@@ -1,6 +1,4 @@
-use anchor_lang::prelude::*;
-use anchor_lang::pubkey;
-use anchor_lang::system_program;
+use anchor_lang::{prelude::*, pubkey, system_program};
 
 declare_id!("BPTPw1pRW4uHPRtHMzscDQiLGQqLr4Qj12UFwCGG1ijq");
 
@@ -48,7 +46,6 @@ pub mod rock_destroyer {
 }
 
 #[derive(Accounts)]
-#[instruction()]
 pub struct InitializeLeaderboard<'info> {
     #[account(
         init_if_needed,
@@ -137,7 +134,8 @@ impl Leaderboard {
     }
 }
 
-#[derive(InitSpace, AnchorSerialize, AnchorDeserialize, Clone)]
+#[account]
+#[derive(InitSpace)]
 pub struct Player {
     #[max_len(32)]
     username: String,

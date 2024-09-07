@@ -12,15 +12,21 @@ describe("rock-destroyer", () => {
 
   const filePath = "/workspace/solana-curriculum/build-an-anchor-leaderboard/game-owner.json";
   const gameOwner = Keypair.fromSecretKey(new Uint8Array(JSON.parse(fs.readFileSync(filePath, "utf-8"))));
+  const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
 
   it("initializes leaderboard", async () => {
-    const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
-
     const signature = await programProvider.connection.requestAirdrop(gameOwner.publicKey, 1_000_000_000);
     const { blockhash, lastValidBlockHeight } = await programProvider.connection.getLatestBlockhash();
-    await programProvider.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    await programProvider.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature
+    });
 
-    await program.methods.initializeLeaderboard().accounts({ leaderboard: leaderboardPublicKey, gameOwner: gameOwner.publicKey }).signers([gameOwner]).rpc();
+    await program.methods.initializeLeaderboard().accounts({
+      leaderboard: leaderboardPublicKey,
+      gameOwner: gameOwner.publicKey
+    }).signers([gameOwner]).rpc();
 
     const leaderboardData = await program.account.leaderboard.fetch(leaderboardPublicKey);
 
@@ -28,18 +34,28 @@ describe("rock-destroyer", () => {
   });
 
   it("creates a new game", async () => {
-    const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
-    
     await programProvider.connection.requestAirdrop(gameOwner.publicKey, 1_000_000_000);
     const player = Keypair.generate();
     const signature = await programProvider.connection.requestAirdrop(player.publicKey, 5_000_000_000);
     const { blockhash, lastValidBlockHeight } = await programProvider.connection.getLatestBlockhash();
-    await programProvider.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    await programProvider.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature
+    });
 
     const balanceBefore = await programProvider.connection.getBalance(player.publicKey);
-    
-    await program.methods.initializeLeaderboard().accounts({ leaderboard: leaderboardPublicKey, gameOwner: gameOwner.publicKey }).signers([gameOwner]).rpc();
-    await program.methods.newGame("camperbot").accounts({ user: player.publicKey, gameOwner: gameOwner.publicKey, leaderboard: leaderboardPublicKey }).signers([player]).rpc();
+
+    await program.methods.initializeLeaderboard().accounts({
+      leaderboard: leaderboardPublicKey,
+      gameOwner: gameOwner.publicKey
+    }).signers([gameOwner]).rpc();
+
+    await program.methods.newGame("camperbot").accounts({
+      user: player.publicKey,
+      gameOwner: gameOwner.publicKey,
+      leaderboard: leaderboardPublicKey
+    }).signers([player]).rpc();
 
     const balanceAfter = await programProvider.connection.getBalance(player.publicKey);
     const leaderboardData = await program.account.leaderboard.fetch(leaderboardPublicKey);
@@ -53,17 +69,32 @@ describe("rock-destroyer", () => {
   })
 
   it("adds a player to the leaderboard", async () => {
-    const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
-    
     await programProvider.connection.requestAirdrop(gameOwner.publicKey, 1_000_000_000);
     const player = Keypair.generate();
     const signature = await programProvider.connection.requestAirdrop(player.publicKey, 5_000_000_000);
     const { blockhash, lastValidBlockHeight } = await programProvider.connection.getLatestBlockhash();
-    await programProvider.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    await programProvider.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature
+    });
 
-    await program.methods.initializeLeaderboard().accounts({ leaderboard: leaderboardPublicKey, gameOwner: gameOwner.publicKey }).signers([gameOwner]).rpc();
-    await program.methods.newGame("camperbot").accounts({ user: player.publicKey, gameOwner: gameOwner.publicKey, leaderboard: leaderboardPublicKey }).signers([player]).rpc();
-    await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({ leaderboard: leaderboardPublicKey, user: player.publicKey }).signers([player]).rpc();
+    await program.methods.initializeLeaderboard().accounts({
+      leaderboard: leaderboardPublicKey,
+      gameOwner: gameOwner.publicKey
+
+    }).signers([gameOwner]).rpc();
+
+    await program.methods.newGame("camperbot").accounts({
+      user: player.publicKey,
+      gameOwner: gameOwner.publicKey,
+      leaderboard: leaderboardPublicKey
+    }).signers([player]).rpc();
+
+    await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({
+      leaderboard: leaderboardPublicKey,
+      user: player.publicKey
+    }).signers([player]).rpc();
 
     const leaderboardData = await program.account.leaderboard.fetch(leaderboardPublicKey);
 
@@ -72,18 +103,26 @@ describe("rock-destroyer", () => {
   })
 
   it("throws an error when the user does not exist", async () => {
-    const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
-    
     await programProvider.connection.requestAirdrop(gameOwner.publicKey, 1_000_000_000);
     const player = Keypair.generate();
     const signature = await programProvider.connection.requestAirdrop(player.publicKey, 5_000_000_000);
     const { blockhash, lastValidBlockHeight } = await programProvider.connection.getLatestBlockhash();
-    await programProvider.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    await programProvider.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature
+    });
 
-    await program.methods.initializeLeaderboard().accounts({ leaderboard: leaderboardPublicKey, gameOwner: gameOwner.publicKey }).signers([gameOwner]).rpc();
-    
+    await program.methods.initializeLeaderboard().accounts({
+      leaderboard: leaderboardPublicKey,
+      gameOwner: gameOwner.publicKey
+    }).signers([gameOwner]).rpc();
+
     try {
-      await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({ leaderboard: leaderboardPublicKey, user: player.publicKey }).signers([player]).rpc();
+      await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({
+        leaderboard: leaderboardPublicKey,
+        user: player.publicKey
+      }).signers([player]).rpc();
     } catch (e) {
       assert.instanceOf(e, AnchorError);
       assert.equal(e.error.errorCode.code, "PlayerNotFound");
@@ -92,20 +131,37 @@ describe("rock-destroyer", () => {
   })
 
   it("throws an error when the user has not payed", async () => {
-    const [leaderboardPublicKey] = PublicKey.findProgramAddressSync([Buffer.from("leaderboard"), gameOwner.publicKey.toBuffer()], program.programId);
-    
     await programProvider.connection.requestAirdrop(gameOwner.publicKey, 1_000_000_000);
     const player = Keypair.generate();
     const signature = await programProvider.connection.requestAirdrop(player.publicKey, 5_000_000_000);
     const { blockhash, lastValidBlockHeight } = await programProvider.connection.getLatestBlockhash();
-    await programProvider.connection.confirmTransaction({ blockhash, lastValidBlockHeight, signature });
+    await programProvider.connection.confirmTransaction({
+      blockhash,
+      lastValidBlockHeight,
+      signature
+    });
 
-    await program.methods.initializeLeaderboard().accounts({ leaderboard: leaderboardPublicKey, gameOwner: gameOwner.publicKey }).signers([gameOwner]).rpc();
-    await program.methods.newGame("camperbot").accounts({ user: player.publicKey, gameOwner: gameOwner.publicKey, leaderboard: leaderboardPublicKey }).signers([player]).rpc();
-    await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({ leaderboard: leaderboardPublicKey, user: player.publicKey }).signers([player]).rpc();
-    
+    await program.methods.initializeLeaderboard().accounts({
+      leaderboard: leaderboardPublicKey,
+      gameOwner: gameOwner.publicKey
+    }).signers([gameOwner]).rpc();
+
+    await program.methods.newGame("camperbot").accounts({
+      user: player.publicKey,
+      gameOwner: gameOwner.publicKey,
+      leaderboard: leaderboardPublicKey
+    }).signers([player]).rpc();
+
+    await program.methods.addPlayerToLeaderboard(new BN(100)).accounts({
+      leaderboard: leaderboardPublicKey,
+      user: player.publicKey
+    }).signers([player]).rpc();
+
     try {
-      await program.methods.addPlayerToLeaderboard(new BN(150)).accounts({ leaderboard: leaderboardPublicKey, user: player.publicKey }).signers([player]).rpc();
+      await program.methods.addPlayerToLeaderboard(new BN(150)).accounts({
+        leaderboard: leaderboardPublicKey,
+        user: player.publicKey
+      }).signers([player]).rpc();
     } catch (e) {
       assert.instanceOf(e, AnchorError);
       assert.equal(e.error.errorCode.code, "PlayerHasNotPaid");
