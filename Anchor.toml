@@ -11,8 +11,8 @@ rock_destroyer = "CqmE9A5DYWUdys2Zi3bPEUCL2rYs8tjHdxzZkWy8WzGN"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "Localnet"
-wallet = "../game-owner.json"
+cluster = "Devnet"
+wallet = "game-owner.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
