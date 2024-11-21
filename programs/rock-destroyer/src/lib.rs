@@ -1,8 +1,13 @@
-use anchor_lang::{prelude::*, pubkey, system_program};
+use anchor_lang::{
+    prelude::*,
+    pubkey,
+    system_program::{transfer, Transfer},
+    Discriminator,
+};
 
-declare_id!("CqmE9A5DYWUdys2Zi3bPEUCL2rYs8tjHdxzZkWy8WzGN");
+declare_id!("RoCK6dTHRi3EvCQx4zJRRBDKNy2FDeqcj1m4sb7sn7a");
 
-const GAME_OWNER_PUBKEY: Pubkey = pubkey!("9agDtgAxwyEhGDFMEdAJiyHUiKehjCpeLWbEj7ZoDhP");
+const GAME_OWNER_PUBKEY: Pubkey = pubkey!("RoCK2yYsK2nq4GWpCvpzzmyNXE9Z7sEKkJRGbaUuDVT");
 
 #[program]
 pub mod rock_destroyer {
@@ -11,16 +16,14 @@ pub mod rock_destroyer {
     pub fn initialize_leaderboard(ctx: Context<InitializeLeaderboard>) -> Result<()> {
         let leaderboard = &mut ctx.accounts.leaderboard;
 
-        leaderboard.initialize()
+        leaderboard.initialize(ctx.bumps.leaderboard)
     }
 
     pub fn new_game(ctx: Context<NewGame>, username: String) -> Result<()> {
-        let leaderboard = &mut ctx.accounts.leaderboard;
-
-        system_program::transfer(
+        transfer(
             CpiContext::new(
                 ctx.accounts.system_program.to_account_info(),
-                system_program::Transfer {
+                Transfer {
                     from: ctx.accounts.user.to_account_info(),
                     to: ctx.accounts.game_owner.to_account_info(),
                 },
@@ -28,17 +31,20 @@ pub mod rock_destroyer {
             1000000000,
         )?;
 
-        let new_player = Player {
+        let leaderboard = &mut ctx.accounts.leaderboard;
+
+        leaderboard.add_player(Player {
             username,
             pubkey: ctx.accounts.user.key(),
             score: 0,
             has_payed: true,
-        };
-
-        leaderboard.add_player(new_player)
+        })
     }
 
-    pub fn add_player_to_leaderboard(ctx: Context<AddPlayerToLeaderboard>, score: u64) -> Result<()> {
+    pub fn add_player_to_leaderboard(
+        ctx: Context<AddPlayerToLeaderboard>,
+        score: u64,
+    ) -> Result<()> {
         let leaderboard = &mut ctx.accounts.leaderboard;
 
         leaderboard.update_score(&ctx.accounts.user.key(), score)
@@ -48,54 +54,71 @@ pub mod rock_destroyer {
 #[derive(Accounts)]
 pub struct InitializeLeaderboard<'info> {
     #[account(
-        init_if_needed,
-        payer = game_owner,
-        space = 8 + Leaderboard::INIT_SPACE,
-        seeds = [b"leaderboard", game_owner.key().as_ref()],
-        bump
-    )]
-    pub leaderboard: Account<'info, Leaderboard>,
-    #[account(
         mut,
         address = GAME_OWNER_PUBKEY,
         owner = system_program.key()
     )]
     pub game_owner: Signer<'info>,
+    #[account(
+        init_if_needed,
+        payer = game_owner,
+        space = Leaderboard::DISCRIMINATOR.len() + Leaderboard::INIT_SPACE,
+        seeds = [b"leaderboard", game_owner.key().as_ref()],
+        bump
+    )]
+    pub leaderboard: Account<'info, Leaderboard>,
     pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct NewGame<'info> {
     #[account(mut)]
-    user: Signer<'info>,
+    pub user: Signer<'info>,
     #[account(
         mut,
         address = GAME_OWNER_PUBKEY,
         owner = system_program.key()
     )]
     /// CHECK: This is not dangerous because we don't read or write from this account
-    game_owner: UncheckedAccount<'info>,
-    #[account(mut)]
-    leaderboard: Account<'info, Leaderboard>,
-    system_program: Program<'info, System>,
+    pub game_owner: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        seeds = [b"leaderboard", game_owner.key().as_ref()],
+        bump = leaderboard.bump
+    )]
+    pub leaderboard: Account<'info, Leaderboard>,
+    pub system_program: Program<'info, System>,
 }
 
 #[derive(Accounts)]
 pub struct AddPlayerToLeaderboard<'info> {
-    #[account(mut)]
-    leaderboard: Account<'info, Leaderboard>,
-    user: Signer<'info>,
+    pub user: Signer<'info>,
+    #[account(
+        address = GAME_OWNER_PUBKEY,
+        owner = system_program.key()
+    )]
+    /// CHECK: This is not dangerous because we don't read or write from this account
+    pub game_owner: UncheckedAccount<'info>,
+    #[account(
+        mut,
+        seeds = [b"leaderboard", game_owner.key().as_ref()],
+        bump = leaderboard.bump
+    )]
+    pub leaderboard: Account<'info, Leaderboard>,
+    pub system_program: Program<'info, System>,
 }
 
 #[account]
 #[derive(InitSpace)]
 pub struct Leaderboard {
+    pub bump: u8,
     #[max_len(5)]
-    players: Vec<Player>,
+    pub players: Vec<Player>,
 }
 
 impl Leaderboard {
-    pub fn initialize(&mut self) -> Result<()> {
+    pub fn initialize(&mut self, bump: u8) -> Result<()> {
+        self.bump = bump;
         self.players = Vec::new();
         Ok(())
     }
@@ -134,18 +157,19 @@ impl Leaderboard {
     }
 }
 
-#[account]
-#[derive(InitSpace)]
+#[derive(InitSpace, Clone, AnchorSerialize, AnchorDeserialize)]
 pub struct Player {
+    pub has_payed: bool,
+    pub score: u64,
+    pub pubkey: Pubkey,
     #[max_len(32)]
-    username: String,
-    pubkey: Pubkey,
-    score: u64,
-    has_payed: bool,
+    pub username: String,
 }
 
 #[error_code]
 pub enum RockDestroyerError {
+    #[msg("Player not found")]
     PlayerNotFound,
+    #[msg("Player has not paid")]
     PlayerHasNotPaid,
 }

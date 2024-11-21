@@ -2,7 +2,7 @@
 
 On-chain leaderboard for Solana Curriculum in [freeCodeCampWeb3](https://web3.freecodecamp.org/).
 
-[Program on Solana Explorer](https://explorer.solana.com/address/CqmE9A5DYWUdys2Zi3bPEUCL2rYs8tjHdxzZkWy8WzGN?cluster=devnet)
+[Program on Solana Explorer](https://explorer.solana.com/address/RoCK6dTHRi3EvCQx4zJRRBDKNy2FDeqcj1m4sb7sn7a?cluster=devnet)
 
 [Source Repository](https://github.com/ChiefWoods/anchor-leaderboard)
 
@@ -19,7 +19,7 @@ On-chain leaderboard for Solana Curriculum in [freeCodeCampWeb3](https://web3.fr
 
 ### Test Frameworks
 
-- [![Mocha](https://img.shields.io/badge/Mocha-ffffff?style=for-the-badge&logo=mocha)](https://mochajs.org/)
+- [![Bun](https://img.shields.io/badge/Bun-000?style=for-the-badge&logo=bun)](https://bun.sh/)
 
 ### Tools
 
@@ -29,11 +29,11 @@ On-chain leaderboard for Solana Curriculum in [freeCodeCampWeb3](https://web3.fr
 
 ### Prerequisites
 
-1. Update your Solana CLI, npm package and avm to the latest version
+1. Update your Solana CLI, Bun package manager and avm to the latest version
 
 ```
 solana-install update
-npm install npm@latest -g
+bun upgrade
 avm update
 ```
 
@@ -48,7 +48,7 @@ git clone https://github.com/ChiefWoods/anchor-leaderboard.git
 2. Install all dependencies
 
 ```
-npm install
+bun install
 ```
 
 3. Generate a new keypair
@@ -69,10 +69,10 @@ solana config set -u d -k game-owner.json
 solana airdrop 5
 ```
 
-6. Subtitute keypair's address it in `lib.rs`
+6. Subtitute game owner address in `lib.rs`
 
 ```
-const GAME_OWNER_PUBKEY: Pubkey = pubkey!("<KEYPAIR ADDRESS HERE>");
+const GAME_OWNER_PUBKEY: Pubkey = pubkey!("<GAME_OWNER_ADDRESS>");
 ```
 
 7. In the upper `rock-destroyer`, build the program
